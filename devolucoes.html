@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Devoluções - Painel de Controle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f7;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        
+        /* Dashboard Atualizado para Dinheiro e Quantidade */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            margin-top: 15px;
+        }
+        .card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+        }
+        .card h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card .numero-dinheiro {
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 8px;
+            color: #2c3e50;
+        }
+        .card .numero-qtd {
+            font-size: 13px;
+            color: #95a5a6;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+        .card.total { border-top: 4px solid #3498db; }
+        .card.aprovado { border-top: 4px solid #2ecc71; }
+        .card.aprovado .numero-dinheiro { color: #2ecc71; }
+        .card.perdido { border-top: 4px solid #e74c3c; }
+        .card.perdido .numero-dinheiro { color: #e74c3c; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        .form-botoes {
+            display: flex;
+            gap: 10px;
+            grid-column: span 2;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            background-color: #eaf2f8;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #d4e6f1;
+            margin-top: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            color: #2980b9;
+        }
+
+        button.btn-add {
+            background-color: #2ecc71;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            padding: 12px;
+            flex: 1;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        button.btn-add:hover { background-color: #27ae60; }
+        
+        button.btn-cancelar {
+            background-color: #95a5a6;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            padding: 12px;
+            flex: 1;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 16px;
+            display: none; 
+        }
+        button.btn-cancelar:hover { background-color: #7f8c8d; }
+        
+        .toolbar-tabela {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            margin-top: 40px;
+            margin-bottom: 15px;
+        }
+        .toolbar-tabela select {
+            width: auto;
+            min-width: 200px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .btn-imprimir {
+            background-color: #34495e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .btn-imprimir:hover { background-color: #2c3e50; }
+
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; white-space: nowrap; }
+        th { background-color: #f8fafc; color: #64748b; }
+        .status-aprovado { color: #27ae60; font-weight: bold; }
+        .status-perdido { color: #e74c3c; font-weight: bold; }
+        
+        .acoes-celula { text-align: center; }
+        .btn-acao {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 0 5px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .btn-editar-item { color: #f39c12; }
+        .btn-editar-item:hover { background: #fef5e7; }
+        .btn-excluir-item { color: #e74c3c; }
+        .btn-excluir-item:hover { background: #fdedec; }
+
+        .btn-limpar {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 25px;
+            font-weight: bold;
+            width: 100%;
+        }
+        .btn-limpar:hover { background-color: #c0392b; }
+        .loja-badge {
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #475569;
+        }
+        .sku-texto {
+            font-family: monospace;
+            color: #334155;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        @media print {
+            body { background-color: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            #areaFormulario, .toolbar-tabela, .btn-limpar { display: none !important; }
+            .dashboard { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .card { flex: 1; margin: 0 5px; border: 1px solid #ccc; }
+            table { width: 100%; }
+            th, td { border: 1px solid #000; padding: 8px; font-size: 12px; }
+            .coluna-acoes { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <h2 id="tituloDashboard">Painel Financeiro Geral</h2>
+        
+        <div class="dashboard">
+            <div class="card total">
+                <h3>Movimentação Total</h3>
+                <div id="valorTotal" class="numero-dinheiro">R$ 0,00</div>
+                <div id="qtdTotal" class="numero-qtd">0 itens registrados</div>
+            </div>
+            <div class="card aprovado">
+                <h3>Valor Aprovado</h3>
+                <div id="valorAprovados" class="numero-dinheiro">R$ 0,00</div>
+                <div id="qtdAprovados" class="numero-qtd">0 itens aprovados</div>
+            </div>
+            <div class="card perdido">
+                <h3>Valor Perdido</h3>
+                <div id="valorPerdidos" class="numero-dinheiro">R$ 0,00</div>
+                <div id="qtdPerdidos" class="numero-qtd">0 itens perdidos</div>
+            </div>
+        </div>
+
+        <div id="areaFormulario">
+            <h2 id="tituloFormulario" style="margin-top: 20px;">Registrar Nova Devolução</h2>
+            <form id="formDevolucao">
+                <div class="form-grid">
+                    
+                    <div class="form-group">
+                        <label for="loja">Loja:</label>
+                        <select id="loja" required>
+                            <option value="" disabled selected>Selecione a loja</option>
+                            <option value="MAPU">MAPU</option>
+                            <option value="P&M">P&M</option>
+                            <option value="AIVY">AIVY</option>
+                            <option value="MAPUPY">MAPUPY</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mes">Mês da Devolução:</label>
+                        <select id="mes" required>
+                            <option value="" disabled selected>Selecione o mês</option>
+                            <option value="Janeiro">Janeiro</option>
+                            <option value="Fevereiro">Fevereiro</option>
+                            <option value="Março">Março</option>
+                            <option value="Abril">Abril</option>
+                            <option value="Maio">Maio</option>
+                            <option value="Junho">Junho</option>
+                            <option value="Julho">Julho</option>
+                            <option value="Agosto">Agosto</option>
+                            <option value="Setembro">Setembro</option>
+                            <option value="Outubro">Outubro</option>
+                            <option value="Novembro">Novembro</option>
+                            <option value="Dezembro">Dezembro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="idPedido">ID do Pedido:</label>
+                        <input type="text" id="idPedido" placeholder="Ex: PED-10293" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skuProduto">SKU do Produto:</label>
+                        <input type="text" id="skuProduto" placeholder="Ex: CAM-PRETA-M" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="valor">Valor da Devolução (R$):</label>
+                        <input type="number" id="valor" step="0.01" placeholder="Ex: 150.50" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status da Devolução:</label>
+                        <select id="status" required>
+                            <option value="Aprovado">Aprovado</option>
+                            <option value="Perdido">Perdido</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width" id="areaDownload">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoDownload" checked>
+                            <label for="autoDownload">Gerar e baixar CSV automático ao salvar</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-botoes">
+                        <button type="button" class="btn-cancelar" id="btnCancelar" onclick="cancelarEdicao()">Cancelar Edição</button>
+                        <button type="submit" class="btn-add" id="btnSalvar">Adicionar Devolução</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="toolbar-tabela">
+            <div>
+                <label for="filtroLojaTabela" style="display:inline; margin-right: 5px;">Visualizar apenas:</label>
+                <select id="filtroLojaTabela" onchange="atualizarTela()">
+                    <option value="Todas">Todas as Lojas (Geral)</option>
+                    <option value="MAPU">MAPU</option>
+                    <option value="P&M">P&M</option>
+                    <option value="AIVY">AIVY</option>
+                    <option value="MAPUPY">MAPUPY</option>
+                </select>
+            </div>
+            <button class="btn-imprimir" onclick="imprimirRelatorio()">🖨️ Imprimir / Gerar PDF</button>
+        </div>
+
+        <h2 id="tituloTabela">Histórico de Devoluções</h2>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Loja</th>
+                        <th>Mês</th>
+                        <th>ID do Pedido</th>
+                        <th>SKU do Produto</th>
+                        <th>Valor (R$)</th>
+                        <th>Status</th>
+                        <th class="coluna-acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaBody">
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-limpar" onclick="limparHistorico()">Limpar Todo o Histórico</button>
+    </div>
+
+    <script>
+        let devolucoes = JSON.parse(localStorage.getItem('dadosDevolucoes')) || [];
+        devolucoes = devolucoes.map(d => d.id ? d : { ...d, id: Date.now() + Math.random() });
+        localStorage.setItem('dadosDevolucoes', JSON.stringify(devolucoes));
+
+        let idEditando = null; 
+
+        atualizarTela();
+
+        document.getElementById('formDevolucao').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+
+            const loja = document.getElementById('loja').value;
+            const mes = document.getElementById('mes').value;
+            const idPedido = document.getElementById('idPedido').value;
+            const skuProduto = document.getElementById('skuProduto').value;
+            const valor = parseFloat(document.getElementById('valor').value).toFixed(2);
+            const status = document.getElementById('status').value;
+
+            if (idEditando !== null) {
+                const index = devolucoes.findIndex(d => d.id === idEditando);
+                if (index !== -1) {
+                    devolucoes[index] = { id: idEditando, loja, mes, idPedido, skuProduto, valor, status };
+                }
+                alert("Devolução atualizada com sucesso!");
+                cancelarEdicao(); 
+            } else {
+                const novoId = Date.now() + Math.random(); 
+                devolucoes.push({ id: novoId, loja, mes, idPedido, skuProduto, valor, status });
+                
+                if (document.getElementById('autoDownload').checked) {
+                    baixarArquivoLoja(loja);
+                }
+
+                document.getElementById('idPedido').value = '';
+                document.getElementById('skuProduto').value = '';
+                document.getElementById('valor').value = '';
+                document.getElementById('idPedido').focus();
+            }
+
+            localStorage.setItem('dadosDevolucoes', JSON.stringify(devolucoes));
+            document.getElementById('filtroLojaTabela').value = 'Todas';
+            atualizarTela();
+        });
+
+        function editarItem(id) {
+            const item = devolucoes.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('loja').value = item.loja;
+            document.getElementById('mes').value = item.mes;
+            document.getElementById('idPedido').value = item.idPedido;
+            document.getElementById('skuProduto').value = item.skuProduto;
+            document.getElementById('valor').value = item.valor;
+            document.getElementById('status').value = item.status;
+
+            idEditando = id;
+            document.getElementById('tituloFormulario').innerText = "Editar Devolução";
+            const btnSalvar = document.getElementById('btnSalvar');
+            btnSalvar.innerText = "Salvar Alterações";
+            btnSalvar.style.backgroundColor = "#f39c12"; 
+            
+            document.getElementById('btnCancelar').style.display = "block";
+            document.getElementById('areaDownload').style.display = "none"; 
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            idEditando = null;
+            document.getElementById('formDevolucao').reset();
+            
+            document.getElementById('tituloFormulario').innerText = "Registrar Nova Devolução";
+            const btnSalvar = document.getElementById('btnSalvar');
+            btnSalvar.innerText = "Adicionar Devolução";
+            btnSalvar.style.backgroundColor = "#2ecc71"; 
+
+            document.getElementById('btnCancelar').style.display = "none";
+            document.getElementById('areaDownload').style.display = "block";
+        }
+
+        function excluirItem(id) {
+            if (confirm("Tem certeza que deseja apagar esta devolução? A ação não pode ser desfeita.")) {
+                devolucoes = devolucoes.filter(d => d.id !== id);
+                localStorage.setItem('dadosDevolucoes', JSON.stringify(devolucoes));
+                atualizarTela();
+            }
+        }
+
+        function baixarArquivoLoja(nomeDaLoja) {
+            const dadosDaLoja = devolucoes.filter(d => d.loja === nomeDaLoja);
+            let csvContent = "Loja;Mes;ID do Pedido;SKU do Produto;Valor (R$);Status\n";
+
+            dadosDaLoja.forEach(d => {
+                const valorFormatado = d.valor.replace('.', ',');
+                csvContent += `${d.loja};${d.mes};${d.idPedido};${d.skuProduto};${valorFormatado};${d.status}\n`;
+            });
+
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Relatorio_Devolucoes_${nomeDaLoja}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function atualizarTela() {
+            atualizarTabela();
+            atualizarContadores();
+        }
+
+        function atualizarTabela() {
+            const tabelaBody = document.getElementById('tabelaBody');
+            tabelaBody.innerHTML = ''; 
+            
+            const filtroEscolhido = document.getElementById('filtroLojaTabela').value;
+            const tituloTabela = document.getElementById('tituloTabela');
+            const tituloDashboard = document.getElementById('tituloDashboard');
+
+            if (filtroEscolhido === 'Todas') {
+                tituloTabela.innerText = 'Histórico de Devoluções';
+                tituloDashboard.innerText = 'Painel Financeiro Geral';
+            } else {
+                tituloTabela.innerText = `Histórico de Devoluções - Loja: ${filtroEscolhido}`;
+                tituloDashboard.innerText = `Painel Financeiro - Loja: ${filtroEscolhido}`;
+            }
+
+            devolucoes.forEach(devolucao => {
+                if (filtroEscolhido !== 'Todas' && devolucao.loja !== filtroEscolhido) return; 
+
+                const statusClass = devolucao.status === 'Aprovado' ? 'status-aprovado' : 'status-perdido';
+                const lojaExibicao = devolucao.loja ? devolucao.loja : '-';
+                const skuExibicao = devolucao.skuProduto ? devolucao.skuProduto : '-';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="loja-badge">${lojaExibicao}</span></td>
+                    <td>${devolucao.mes}</td>
+                    <td>${devolucao.idPedido}</td>
+                    <td><span class="sku-texto">${skuExibicao}</span></td>
+                    <td>R$ ${devolucao.valor.replace('.', ',')}</td>
+                    <td class="${statusClass}">${devolucao.status}</td>
+                    <td class="coluna-acoes acoes-celula">
+                        <button class="btn-acao btn-editar-item" onclick="editarItem(${devolucao.id})" title="Editar">✏️</button>
+                        <button class="btn-acao btn-excluir-item" onclick="excluirItem(${devolucao.id})" title="Excluir">🗑️</button>
+                    </td>
+                `;
+                tabelaBody.appendChild(tr);
+            });
+        }
+
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function atualizarContadores() {
+            const filtroEscolhido = document.getElementById('filtroLojaTabela').value;
+            let dadosFiltrados = devolucoes;
+
+            if (filtroEscolhido !== 'Todas') {
+                dadosFiltrados = devolucoes.filter(d => d.loja === filtroEscolhido);
+            }
+
+            // Conta as quantidades
+            const qtdTotal = dadosFiltrados.length;
+            const qtdAprovados = dadosFiltrados.filter(d => d.status === 'Aprovado').length;
+            const qtdPerdidos = dadosFiltrados.filter(d => d.status === 'Perdido').length;
+
+            // Calcula a soma financeira de cada um
+            const valorTotal = dadosFiltrados.reduce((soma, item) => soma + parseFloat(item.valor), 0);
+            const valorAprovados = dadosFiltrados.filter(d => d.status === 'Aprovado').reduce((soma, item) => soma + parseFloat(item.valor), 0);
+            const valorPerdidos = dadosFiltrados.filter(d => d.status === 'Perdido').reduce((soma, item) => soma + parseFloat(item.valor), 0);
+
+            // Atualiza os valores na tela (Moeda)
+            document.getElementById('valorTotal').textContent = formatarMoeda(valorTotal);
+            document.getElementById('valorAprovados').textContent = formatarMoeda(valorAprovados);
+            document.getElementById('valorPerdidos').textContent = formatarMoeda(valorPerdidos);
+
+            // Atualiza os textos de quantidade
+            document.getElementById('qtdTotal').textContent = `${qtdTotal} item(s) registrado(s)`;
+            document.getElementById('qtdAprovados').textContent = `${qtdAprovados} item(s) aprovado(s)`;
+            document.getElementById('qtdPerdidos').textContent = `${qtdPerdidos} item(s) perdido(s)`;
+        }
+
+        function imprimirRelatorio() {
+            window.print();
+        }
+
+        function limparHistorico() {
+            if (confirm("Tem certeza que deseja apagar permanentemente TODO o histórico? Isso apagará todas as lojas.")) {
+                devolucoes = [];
+                localStorage.removeItem('dadosDevolucoes');
+                atualizarTela();
+            }
+        }
+    </script>
+</body>
+</html>
