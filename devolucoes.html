@@ -264,6 +264,24 @@
                         <option value="Perdido">Perdido</option>
                     </select>
                 </div>
+                <div class="form-group full-width">
+                    <label for="motivo">Motivo da Devolução:</label>
+                    <select id="motivo" required>
+                        <option value="" disabled selected>Selecione o motivo</option>
+                        <option value="Erro de separação">Erro de separação</option>
+                        <option value="Erro do sistema">Erro do sistema</option>
+                        <option value="Troca de mercadoria">Troca de mercadoria</option>
+                        <option value="Problema no transporte">Problema no transporte</option>
+                        <option value="Troca de etiqueta">Troca de etiqueta</option>
+                        <option value="Item quebrado">Item quebrado</option>
+                        <option value="Itens faltando">Itens faltando</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label for="observacao">Observação:</label>
+                    <textarea id="observacao" rows="3" placeholder="Descreva o que aconteceu..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; box-sizing:border-box; font-size:14px; font-family:Arial,sans-serif; resize:vertical;"></textarea>
+                </div>
                 <div class="form-group full-width" id="areaDownload">
                     <div class="checkbox-group">
                         <input type="checkbox" id="autoDownload" checked>
@@ -305,7 +323,7 @@
             <thead>
                 <tr>
                     <th>Plataforma</th><th>Loja</th><th>Mês</th><th>ID do Pedido</th>
-                    <th>SKU do Produto</th><th>Valor (R$)</th><th>Status</th>
+                    <th>SKU do Produto</th><th>Valor (R$)</th><th>Status</th><th>Motivo</th><th>Observação</th>
                     <th class="coluna-acoes" id="thAcoes" style="display:none;">Ações</th>
                 </tr>
             </thead>
@@ -419,6 +437,8 @@
 
         const dados = {
             plataforma: document.getElementById('plataforma').value,
+            motivo: document.getElementById('motivo').value,
+            observacao: document.getElementById('observacao').value,
             loja: document.getElementById('loja').value,
             mes: document.getElementById('mes').value,
             idPedido: document.getElementById('idPedido').value,
@@ -456,6 +476,8 @@
         const item = devolucoes.find(d => d.id === id);
         if (!item) return;
         document.getElementById('plataforma').value = item.plataforma || '';
+        document.getElementById('motivo').value = item.motivo || '';
+        document.getElementById('observacao').value = item.observacao || '';
         document.getElementById('loja').value = item.loja;
         document.getElementById('mes').value = item.mes;
         document.getElementById('idPedido').value = item.idPedido;
@@ -510,9 +532,9 @@
     // --- CSV ---
     window.baixarArquivoLoja = function(nomeDaLoja) {
         const dadosDaLoja = devolucoes.filter(d => d.loja === nomeDaLoja);
-        let csv = "Plataforma;Loja;Mes;ID do Pedido;SKU do Produto;Valor (R$);Status\n";
+        let csv = "Plataforma;Loja;Mes;ID do Pedido;SKU do Produto;Valor (R$);Status;Motivo;Observacao\n";
         dadosDaLoja.forEach(d => {
-            csv += `${d.plataforma || ''};${d.loja};${d.mes};${d.idPedido};${d.skuProduto};${String(d.valor).replace('.', ',')};${d.status}\n`;
+            csv += `${d.plataforma || ''};${d.loja};${d.mes};${d.idPedido};${d.skuProduto};${String(d.valor).replace('.', ',')};${d.status};${d.motivo || ''};${(d.observacao || '').replace(/;/g, ',')}\n`;
         });
         const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
@@ -556,6 +578,8 @@
                 <td><span class="sku-texto">${d.skuProduto || '-'}</span></td>
                 <td>R$ ${String(d.valor).replace('.', ',')}</td>
                 <td class="${statusClass}">${d.status}</td>
+                <td>${d.motivo || '-'}</td>
+                <td style="max-width:200px; white-space:normal; font-size:13px;">${d.observacao || '-'}</td>
                 ${acoesHTML}
             `;
             tabelaBody.appendChild(tr);
