@@ -11,14 +11,16 @@
             color: #333;
             margin: 0;
             padding: 20px;
+            box-sizing: border-box;
         }
         .container {
-            max-width: 950px;
+            width: 100%;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-sizing: border-box;
         }
         h2 {
             margin-top: 0;
@@ -52,7 +54,6 @@
         .card.perdido { border-top: 4px solid #e74c3c; }
         .card.perdido .numero-dinheiro { color: #e74c3c; }
 
-        /* Banner de status de conexão */
         #statusConexao {
             padding: 10px 15px;
             border-radius: 6px;
@@ -65,7 +66,6 @@
         #statusConexao.conectado  { background: #dcfce7; color: #166534; border: 1px solid #86efac; display: block; }
         #statusConexao.erro       { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
 
-        /* Banner modo visualização */
         #modoVisualizacao {
             background: #eff6ff;
             border: 1px solid #93c5fd;
@@ -136,7 +136,6 @@
         .loja-badge { background-color: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold; color: #475569; }
         .sku-texto { font-family: monospace; color: #334155; background: #f1f5f9; padding: 2px 6px; border-radius: 3px; }
 
-        /* Área de login admin */
         #areaLogin {
             background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
             padding: 20px; margin-bottom: 20px; display: none;
@@ -174,11 +173,9 @@
 
     <h2 id="tituloDashboard">Painel Financeiro Geral</h2>
 
-    <!-- Status de conexão Firebase -->
     <div id="statusConexao" class="conectando">⏳ Conectando ao banco de dados...</div>
     <div id="modoVisualizacao">👁️ Você está no modo <strong>visualização</strong>. Para registrar ou editar, faça login como administrador.</div>
 
-    <!-- Dashboard -->
     <div class="dashboard">
         <div class="card total">
             <h3>Movimentação Total</h3>
@@ -197,7 +194,6 @@
         </div>
     </div>
 
-    <!-- Login Admin -->
     <div id="areaLogin">
         <h3>🔐 Acesso Administrador</h3>
         <div class="login-grid">
@@ -210,7 +206,6 @@
         <div id="erroLogin" style="color:#e74c3c; font-size:13px; margin-top:8px; display:none;">Senha incorreta. Tente novamente.</div>
     </div>
 
-    <!-- Formulário (só admin vê) -->
     <div id="areaFormulario" style="display:none;">
         <h2 id="tituloFormulario" style="margin-top: 20px;">Registrar Nova Devolução</h2>
         <form id="formDevolucao">
@@ -296,7 +291,6 @@
         </form>
     </div>
 
-    <!-- Toolbar tabela -->
     <div class="toolbar-tabela">
         <div>
             <label for="filtroLojaTabela" style="display:inline; margin-right: 5px;">Visualizar apenas:</label>
@@ -335,14 +329,10 @@
 
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // =========================================================
-    // ⚠️  SUBSTITUA AQUI COM AS SUAS CREDENCIAIS DO FIREBASE
-    // =========================================================
     const firebaseConfig = {
         apiKey: "AIzaSyAFmPjh2nArGNRrkOlJ_bNTq4VhbIlTLPo",
         authDomain: "devolucoes-loja.firebaseapp.com",
@@ -351,13 +341,8 @@
         messagingSenderId: "1082992552340",
         appId: "1:1082992552340:web:c29d0ca4274eb429a18781"
     };
-    // =========================================================
 
-    // =========================================================
-    // ⚠️  DEFINA A SENHA DE ADMINISTRADOR AQUI
-    // =========================================================
-    const SENHA_ADMIN = "05131922Jcpo#"; // Troque por uma senha forte!
-    // =========================================================
+    const SENHA_ADMIN = "05131922Jcpo#";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -367,7 +352,6 @@
     let idEditando = null;
     let isAdmin = false;
 
-    // --- Status de conexão ---
     function setStatus(tipo, msg) {
         const el = document.getElementById('statusConexao');
         el.className = tipo;
@@ -375,7 +359,6 @@
         if (tipo === 'conectado') setTimeout(() => { el.style.display = 'none'; }, 3000);
     }
 
-    // --- Listener em tempo real ---
     setStatus('conectando', '⏳ Conectando ao banco de dados...');
     const q = query(colecao, orderBy("criadoEm", "asc"));
     onSnapshot(q,
@@ -390,7 +373,6 @@
         }
     );
 
-    // --- Login / Logout ---
     window.toggleLoginArea = function() {
         const area = document.getElementById('areaLogin');
         area.style.display = area.style.display === 'none' ? 'block' : 'none';
@@ -428,7 +410,6 @@
         atualizarTela();
     };
 
-    // --- Formulário ---
     document.getElementById('formDevolucao').addEventListener('submit', async function(event) {
         event.preventDefault();
         const btnSalvar = document.getElementById('btnSalvar');
@@ -471,7 +452,6 @@
         btnSalvar.textContent = idEditando ? 'Salvar Alterações' : 'Adicionar Devolução';
     });
 
-    // --- Editar ---
     window.editarItem = function(id) {
         const item = devolucoes.find(d => d.id === id);
         if (!item) return;
@@ -505,7 +485,6 @@
         document.getElementById('areaDownload').style.display = "block";
     };
 
-    // --- Excluir ---
     window.excluirItem = async function(id) {
         if (confirm("Tem certeza que deseja apagar esta devolução? A ação não pode ser desfeita.")) {
             try {
@@ -516,7 +495,6 @@
         }
     };
 
-    // --- Limpar tudo ---
     window.limparHistorico = async function() {
         if (confirm("Tem certeza que deseja apagar permanentemente TODO o histórico?")) {
             try {
@@ -529,7 +507,6 @@
         }
     };
 
-    // --- CSV ---
     window.baixarArquivoLoja = function(nomeDaLoja) {
         const dadosDaLoja = devolucoes.filter(d => d.loja === nomeDaLoja);
         let csv = "Plataforma;Loja;Mes;ID do Pedido;SKU do Produto;Valor (R$);Status;Motivo;Observacao\n";
@@ -546,7 +523,6 @@
         document.body.removeChild(link);
     };
 
-    // --- Renderização ---
     window.atualizarTela = function() {
         atualizarTabela();
         atualizarContadores();
@@ -606,7 +582,6 @@
 
     window.imprimirRelatorio = () => window.print();
 
-    // Ao carregar: modo visualização por padrão
     document.getElementById('modoVisualizacao').style.display = 'block';
 
 </script>
