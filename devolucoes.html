@@ -107,10 +107,14 @@
         button.btn-cancelar:hover { background-color: #7f8c8d; }
         .toolbar-tabela {
             display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 15px;
             background-color: #f8fafc; padding: 15px; border-radius: 6px;
             border: 1px solid #e2e8f0; margin-top: 40px; margin-bottom: 15px;
         }
-        .toolbar-tabela select { width: auto; min-width: 200px; display: inline-block; margin-left: 10px; }
+        .toolbar-filtros { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .toolbar-filtros .filtro-item { display: flex; align-items: center; }
+        .toolbar-filtros label { margin-bottom: 0; margin-right: 8px; white-space: nowrap; }
+        .toolbar-tabela select { width: auto; min-width: 180px; display: inline-block; }
         .btn-imprimir {
             background-color: #34495e; color: white; padding: 10px 20px;
             border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;
@@ -292,15 +296,27 @@
     </div>
 
     <div class="toolbar-tabela">
-        <div>
-            <label for="filtroLojaTabela" style="display:inline; margin-right: 5px;">Visualizar apenas:</label>
-            <select id="filtroLojaTabela" onchange="atualizarTela()">
-                <option value="Todas">Todas as Lojas (Geral)</option>
-                <option value="MAPU">MAPU</option>
-                <option value="P&M">P&M</option>
-                <option value="AIVY">AIVY</option>
-                <option value="MAPUPY">MAPUPY</option>
-            </select>
+        <div class="toolbar-filtros">
+            <div class="filtro-item">
+                <label for="filtroLojaTabela">Loja:</label>
+                <select id="filtroLojaTabela" onchange="atualizarTela()">
+                    <option value="Todas">Todas as Lojas</option>
+                    <option value="MAPU">MAPU</option>
+                    <option value="P&M">P&M</option>
+                    <option value="AIVY">AIVY</option>
+                    <option value="MAPUPY">MAPUPY</option>
+                </select>
+            </div>
+            <div class="filtro-item">
+                <label for="filtroMesTabela">Mês:</label>
+                <select id="filtroMesTabela" onchange="atualizarTela()">
+                    <option value="Todos">Todos os Meses</option>
+                    <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+                    <option>Abril</option><option>Maio</option><option>Junho</option>
+                    <option>Julho</option><option>Agosto</option><option>Setembro</option>
+                    <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+                </select>
+            </div>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
             <span id="adminBadge" style="display:none; font-size:13px; color:#166534; background:#dcfce7; padding:4px 10px; border-radius:4px; font-weight:bold;">✅ Admin</span>
@@ -523,6 +539,25 @@
         document.body.removeChild(link);
     };
 
+    function obterListaFiltrada() {
+        const filtroLoja = document.getElementById('filtroLojaTabela').value;
+        const filtroMes = document.getElementById('filtroMesTabela').value;
+        return devolucoes.filter(d => {
+            const passaLoja = filtroLoja === 'Todas' || d.loja === filtroLoja;
+            const passaMes = filtroMes === 'Todos' || d.mes === filtroMes;
+            return passaLoja && passaMes;
+        });
+    }
+
+    function montarTituloFiltro() {
+        const filtroLoja = document.getElementById('filtroLojaTabela').value;
+        const filtroMes = document.getElementById('filtroMesTabela').value;
+        const partes = [];
+        if (filtroLoja !== 'Todas') partes.push(`Loja: ${filtroLoja}`);
+        if (filtroMes !== 'Todos') partes.push(`Mês: ${filtroMes}`);
+        return partes.length ? partes.join(' | ') : null;
+    }
+
     window.atualizarTela = function() {
         atualizarTabela();
         atualizarContadores();
@@ -531,11 +566,11 @@
     function atualizarTabela() {
         const tabelaBody = document.getElementById('tabelaBody');
         tabelaBody.innerHTML = '';
-        const filtro = document.getElementById('filtroLojaTabela').value;
-        document.getElementById('tituloTabela').innerText = filtro === 'Todas' ? 'Histórico de Devoluções' : `Histórico de Devoluções - Loja: ${filtro}`;
-        document.getElementById('tituloDashboard').innerText = filtro === 'Todas' ? 'Painel Financeiro Geral' : `Painel Financeiro - Loja: ${filtro}`;
+        const sufixoTitulo = montarTituloFiltro();
+        document.getElementById('tituloTabela').innerText = sufixoTitulo ? `Histórico de Devoluções - ${sufixoTitulo}` : 'Histórico de Devoluções';
+        document.getElementById('tituloDashboard').innerText = sufixoTitulo ? `Painel Financeiro - ${sufixoTitulo}` : 'Painel Financeiro Geral';
 
-        const lista = filtro === 'Todas' ? devolucoes : devolucoes.filter(d => d.loja === filtro);
+        const lista = obterListaFiltrada();
 
         lista.forEach(d => {
             const statusClass = d.status === 'Aprovado' ? 'status-aprovado' : 'status-perdido';
@@ -567,8 +602,7 @@
     }
 
     function atualizarContadores() {
-        const filtro = document.getElementById('filtroLojaTabela').value;
-        const lista = filtro === 'Todas' ? devolucoes : devolucoes.filter(d => d.loja === filtro);
+        const lista = obterListaFiltrada();
         const aprovados = lista.filter(d => d.status === 'Aprovado');
         const perdidos  = lista.filter(d => d.status === 'Perdido');
         const soma = arr => arr.reduce((s, i) => s + parseFloat(i.valor), 0);
